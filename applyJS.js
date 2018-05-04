@@ -156,8 +156,9 @@ function renderRecos(recos) {
 
 if (recommender) {
   $(document).ready(function() {
-    Promise.resolve(getTargetId())
-      .then(fetchRecos)
-      .then(renderRecos);
+    var targetId = getTargetId();
+    console.log(targetId);
+    fetchRecos(targetId)
+    .then(renderRecos);
   });
 }

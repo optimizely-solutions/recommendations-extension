@@ -157,9 +157,9 @@ function renderRecos(recos) {
 
 
 if (recommender) {
-  $(document).ready(function() {
+  //replaced $(document).ready
+  document.addEventListener("DOMContentLoaded",function() {
     var targetId = getTargetId();
-    console.log(targetId);
     fetchRecos(targetId)
     .then(renderRecos);
   });

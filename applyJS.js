@@ -2,8 +2,7 @@
 // Other places have comments to inform you what kind of customizations you can potentially make there. Make sure you
 // read through them.
 
-// A full or trimmed jQuery must be included in the project.
-var $ = optimizely.get('jquery');
+// jQuery is not required anymore for this extension
 var utils = optimizely.get('utils');
 var recommender = optimizely.get('recommender');
 
@@ -11,10 +10,16 @@ var recommender = optimizely.get('recommender');
 var editorMode = optimizely.state && optimizely.state.directives && optimizely.state.directives.isEditor;
 
 // [MUST CHANGE]
-// Fill in the real ids.
+// Fill in the real ids of the different recommenders you will use
+var recommenderIds = {
+    "co-browse": 0,
+    "co-buy": 0,
+    "popular": 0,
+    "user-based": 0
+};
 var recommenderKey = {
-  recommenderServiceId: 0,
-  recommenderId: 0
+    recommenderServiceId: 0,
+    recommenderId: recommenderIds[extension.algorithm]
 };
 
 // [MUST CHANGE]
@@ -25,17 +30,23 @@ function getTargetId() {
   // [MUST CHANGE]
   // Replace with actual code to retrieve the id of the target entity to recommend for.
   //
-  // * For item-based algorithms such as co-browse and co-buy, this will be the target item id.
+  // * For most-popular algorithms, this should be a fixed value of 'popular'.
   // * For user-based algorithms, this will be the optimizely visitor id which you can get through this code:
   //   optimizely.get('visitor').visitorId
-  // * For most-popular algorithms, this should be a fixed value of 'popular'.
+  // * For item-based algorithms such as co-browse and co-buy, this will be the target item id.
   //
-  // Can return either a Promise or a fullfilled value.
-  return utils.waitForElement('[itemtype="http://schema.org/Product"] > [itemprop="productID"]')
-    .then(function(targetElem) {
-      var target = $(targetElem);
-      return target.text() || target.attr('content');
-    });
+  // startsWith is used in this case, because you might want to add 2 popular algorithms, eg. popular-viewed and popular-bought
+
+  if (extension.algorithm.startsWith("popular")) {
+        return "popular";
+    } else if (extension.algorithm.startsWith("user")) {
+        return optimizely.get("visitor").visitorId;
+    } else if (extension.algorithm.startsWith("co")){
+        // [MUST CHANGE]
+        // return the target iten ID (product ID/SKU)
+    } else {
+      return "popular";
+    }
 }
 
 function preFilter(reco) {
@@ -154,7 +165,6 @@ function renderRecos(recos) {
     });
   });
 }
-
 
 if (recommender) {
   //replaced $(document).ready

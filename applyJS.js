@@ -110,26 +110,26 @@ function renderRecos(recos) {
     // Inject the extension html onto the page.
     switch (extension.placement) {
       case 'before':
-        $(selectorElem).before(html);
+        selectorElem.insertAdjacentHTML('beforebegin', html);
         break;
       case 'after':
-        $(selectorElem).after(html);
+        selectorElem.insertAdjacentHTML('afterend', html);
         break;
       case 'prepend':
-        $(selectorElem).prepend(html);
+        selectorElem.insertBefore(html, selectorElem.firstChild);
         break;
       case 'append':
-        $(selectorElem).append(html);
+        selectorElem.appendChild(html);
         break;
       case 'replace-content':
-        // Poor man's wrapInner(), which is excluded from trimmed jQuery.
         // This is to save the original content in a hidden div so that we can restore it in undo.js.
-        var origHtml = $(selectorElem).html();
-        $(selectorElem).empty().append(html).append(
-          $('<div>')
-            .attr('id', 'optimizely-extension-' + extension.$instance + '-orig')
-            .hide()
-            .append(origHtml)
+        var origHtml = selectorElem.innerHTML();
+
+        selectorElem.innerHTML()= ''.appendChild(html).appendChild(
+          '<div>'
+            .setAttribute('id', 'optimizely-extension-' + extension.$instance + '-orig')
+            .style.display = 'none'
+            .appendChild(origHtml)
         );
         break;
       default:
@@ -139,14 +139,16 @@ function renderRecos(recos) {
     // This selector should select the anchor element around each reco.
     var recosSelector = '#optimizely-extension-' + extension.$instance + ' a.reco-link';
 
-    $(recosSelector).click(function () {
+    document.querySelectorAll(recosSelector).click(function () {
       optimizely.push({
         type: 'event',
         // Replace with the actual reco click event you've created for this project, if different.
         eventName: 'extension_recommended_item_click',
         tags: {
           // Tag the id of the clicked reco. The selector may differ depending on your HTML setup.
-          clicked_id: $(this).find('meta[itemprop="id"]').attr('content')
+          // clicked_id: $(this).find('meta[itemprop="id"]').attr('content')
+          // double check if this is actually the right way to do this without jQuery
+          clicked_id: this.querySelectorAll('meta[itemprop="id"]').getAttribute('content')
         }
       });
     });

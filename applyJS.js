@@ -1,7 +1,7 @@
 // Throughout this script there will be places marked as [MUST CHANGE]. Make sure you fill in the details accordingly.
 // Other places have comments to inform you what kind of customizations you can potentially make there. Make sure you
 // read through them.
-
+console.log("version 2.0")
 // jQuery is not required anymore for this extension
 var utils = optimizely.get('utils');
 var recommender = optimizely.get('recommender');

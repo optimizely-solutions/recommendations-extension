@@ -35,17 +35,20 @@ function getTargetId() {
   //   optimizely.get('visitor').visitorId
   // * For item-based algorithms such as co-browse and co-buy, this will be the target item id.
   //
-  // startsWith is used in this case, because you might want to add 2 popular algorithms, eg. popular-viewed and popular-bought
-
-  if (extension.algorithm.startsWith("popular")) {
-        return "popular";
-    } else if (extension.algorithm.startsWith("user")) {
-        return optimizely.get("visitor").visitorId;
-    } else if (extension.algorithm.startsWith("co")){
+  switch (extension.algorithm) {
+      case 'popular':
+        return 'popular';
+        break;
+      case 'user-based':
+        return optimizely.get('visitor').visitorId;
+        break;
+      case 'co-browse':
+      case 'co-buy':
         // [MUST CHANGE]
-        // return the target iten ID (product ID/SKU)
-    } else {
-      return "popular";
+        // return the target item ID (product ID/SKU)
+        break;
+      default:
+        return 'popular';
     }
 }
 

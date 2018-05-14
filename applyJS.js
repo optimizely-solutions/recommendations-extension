@@ -139,11 +139,12 @@ function renderRecos(recos) {
         // This is to save the original content in a hidden div so that we can restore it in undo.js.
         var origHtml = selectorElem.innerHTML();
 
-        selectorElem.innerHTML()= ''.appendChild(html).appendChild(
+        selectorElem.innerHTML()= '';
+        selectorElem.appendChild(html).appendChild(
           '<div>'
             .setAttribute('id', 'optimizely-extension-' + extension.$instance + '-orig')
-            .style.display = 'none'
             .appendChild(origHtml)
+            .style.display = 'none'
         );
         break;
       default:

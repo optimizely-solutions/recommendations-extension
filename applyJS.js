@@ -1,7 +1,7 @@
 // Throughout this script there will be places marked as [MUST CHANGE]. Make sure you fill in the details accordingly.
 // Other places have comments to inform you what kind of customizations you can potentially make there. Make sure you
 // read through them.
-console.log("version 2.0")
+console.log("version 2.22");
 // jQuery is not required anymore for this extension
 var utils = optimizely.get('utils');
 var recommender = optimizely.get('recommender');
@@ -83,10 +83,12 @@ function postFilter(reco) {
   // Use this function to filter on other metadata fields not covered in preFilter().
   // In this example, we exclude out of stock or recos with missing metadata.
   // [MUST CHANGE] if you have a different set of metadata fields.
-  return reco.in_stock &&
-    reco.name &&
-    reco.image &&
-    reco.url &&
+  //return reco.in_stock &&
+  //  reco.name &&
+  //  reco.image &&
+  //  reco.url &&
+  //  reco.price;
+  return reco.name &&
     reco.price;
 }
 
@@ -112,13 +114,21 @@ function fetchRecos(targetId) {
 function renderRecos(recos) {
   recos = recos.slice(0, extension.max);
   if (recos.length === 0) {
-    return;
+    // using example reco if there are no recos yet
+    console.log('Using example reco from render function');
+    recos.push(JSON.parse(extension.example_json.trim()));
+    //console.log("recos is: " + recos);
+    //console.log(recos[0]);
+    recos = recos[0];
+    console.log(recos);
   }
 
   var html = extension.$render({
     extension: extension,
     recos: recos,
   });
+
+  console.log("the html is: " + html);
 
   utils.waitForElement(extension.selector).then(function(selectorElem) {
     // Inject the extension html onto the page.
@@ -139,7 +149,7 @@ function renderRecos(recos) {
         // This is to save the original content in a hidden div so that we can restore it in undo.js.
         var origHtml = selectorElem.innerHTML();
 
-        selectorElem.innerHTML()= '';
+        selectorElem.innerHTML= '';
         selectorElem.appendChild(html).appendChild(
           '<div>'
             .setAttribute('id', 'optimizely-extension-' + extension.$instance + '-orig')

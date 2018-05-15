@@ -1,0 +1,98 @@
+{
+  "plugin_type": "widget",
+  "name": "Recommendations extension",
+  "edit_page_url": "https://atticandbutton.us/products/5-panel-hat",
+  "form_schema": [
+    {
+      "default_value": "You might be interested in",
+      "field_type": "text",
+      "name": "header",
+      "label": "Header",
+      "options": null
+    },
+    {
+      "default_value": 4,
+      "field_type": "number",
+      "name": "max",
+      "label": "Maximum Recommendations",
+      "options": null
+    },
+    {
+      "default_value": ".newsletter",
+      "field_type": "selector",
+      "name": "selector",
+      "label": "Placement Selector",
+      "options": null
+    },
+    {
+      "default_value": "after",
+      "field_type": "dropdown",
+      "name": "placement",
+      "label": "Placement",
+      "options": {
+        "choices": [
+          {
+            "value": "before",
+            "label": "Before Selector"
+          },
+          {
+            "value": "after",
+            "label": "After Selector"
+          },
+          {
+            "value": "prepend",
+            "label": "As First Child of Selector"
+          },
+          {
+            "value": "append",
+            "label": "As Last Child of Selector"
+          },
+          {
+            "value": "replace-content",
+            "label": "Replace Content of Selector"
+          }
+        ]
+      }
+    },
+    {
+      "default_value": "[{\n\t\t\"_score\": 1,\n\t\t\"name\": \"Product example 1\",\n\t\t\"price\": \"\\u00a3125.99\",\n\t\t\"url\": \"www.google.com\",\n\t\t\"id\": \"01\"\n\t},\n\t{\n\t\t\"_score\": 0.5,\n\t\t\"name\": \"Product example 2\",\n\t\t\"price\": \"\\u00a3125.99\",\n\t\t\"url\": \"www.google.com\",\n\t\t\"id\": \"02\"\n\t}\n]",
+      "field_type": "multi_text",
+      "name": "example_json",
+      "label": "Example Recommended Item (JSON)",
+      "options": null
+    },
+    {
+      "default_value": "popular",
+      "field_type": "dropdown",
+      "name": "algorithm",
+      "label": "Recommender algorithm",
+      "options": {
+        "choices": [
+          {
+            "value": "popular",
+            "label": "Popular"
+          },
+          {
+            "value": "co-browse",
+            "label": "Co-Browse"
+          },
+          {
+            "value": "co-buy",
+            "label": "Co-Buy"
+          },
+          {
+            "value": "user-based",
+            "label": "User-Based"
+          }
+        ]
+      }
+    }
+  ],
+  "description": "",
+  "options": {
+    "html": "<!-- This is a minimal skeleton. Need to flesh out the styling. -->\n<!-- The id is used in selectors, so don't change it. -->\n<div id=\"optimizely-extension-{{ extension.$instance }}\" class=\"optly-recos-extension\">\n  <h3>{{ extension.header }}</h3>\n  <div>\n\n    {{#recos}}\n    <div>\n      <!-- The class \"reco-link\" is used in selectors, so don't remove it. -->\n      <a href=\"{{ url }}\" class=\"reco-link\">\n        <meta itemprop=\"id\" content=\"{{ id }}\">\n        <!-- <img src=\"{{ image }}\"> -->\n        <p>{{ name }}</p>\n        <p>{{ price }}</p>\n      </a>\n    </div>\n    {{/recos}}\n\n  </div>\n</div>\n",
+    "css": "",
+    "apply_js": "// Throughout this script there will be places marked as [MUST CHANGE]. Make sure you fill in the details accordingly.\n// Other places have comments to inform you what kind of customizations you can potentially make there. Make sure you\n// read through them.\nconsole.log(\"version 2.22\");\n// jQuery is not required anymore for this extension\nvar utils = optimizely.get('utils');\nvar recommender = optimizely.get('recommender');\n\n// This boolean tells whether you are in the editor, so that you can special case if needed.\nvar editorMode = optimizely.state && optimizely.state.directives && optimizely.state.directives.isEditor;\n\n// [MUST CHANGE]\n// Fill in the real ids of the different recommenders you will use\nvar recommenderIds = {\n    \"co-browse\": 0,\n    \"co-buy\": 0,\n    \"popular\": 0,\n    \"user-based\": 0\n};\nvar recommenderKey = {\n    recommenderServiceId: 0,\n    recommenderId: recommenderIds[extension.algorithm]\n};\n\n// [MUST CHANGE]\n// Replace with the actual id tag name of the recommender service.\nvar idTagName = 'id';\n\nfunction getTargetId() {\n  // [MUST CHANGE]\n  // Replace with actual code to retrieve the id of the target entity to recommend for.\n  //\n  // * For most-popular algorithms, this should be a fixed value of 'popular'.\n  // * For user-based algorithms, this will be the optimizely visitor id which you can get through this code:\n  //   optimizely.get('visitor').visitorId\n  // * For item-based algorithms such as co-browse and co-buy, this will be the target item id.\n  //\n  switch (extension.algorithm) {\n      case 'popular':\n        return 'popular';\n        break;\n      case 'user-based':\n        return optimizely.get('visitor').visitorId;\n        break;\n      case 'co-browse':\n      case 'co-buy':\n        // [MUST CHANGE]\n        // return the target item ID (product ID/SKU)\n        break;\n      default:\n        return 'popular';\n    }\n}\n\nfunction preFilter(reco) {\n  // Use this function to filter on these fields:\n  // * id (keyed by idTagName)\n  // * _score (usually a value between 0 and 1)\n  return true;\n}\n\nfunction canonicalize(reco) {\n  // Uncomment the next line to log the reco to console to help you debug. Remember to comment it out afterwards.\n  // console.log(reco);\n\n  // This is where you perform any necessary canonicalization of the recos before rendering them.\n  // In the example below, we convert numeric prices into string form, and treat missing in_stock values as true.\n  if (typeof reco.price === 'number') {\n    // [MUST CHANGE] if this is for a different currency and/or locale.\n    var symbol = '$';\n    var locale = 'en-US';\n    reco.price = symbol + (reco.price / 100.0).toLocaleString(\n      locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });\n  }\n  if (typeof reco.in_stock === 'undefined') {\n    reco.in_stock = true;\n  }\n\n  return reco;\n}\n\nfunction postFilter(reco) {\n  // Use this function to filter on other metadata fields not covered in preFilter().\n  // In this example, we exclude out of stock or recos with missing metadata.\n  // [MUST CHANGE] if you have a different set of metadata fields.\n  //return reco.in_stock &&\n  //  reco.name &&\n  //  reco.image &&\n  //  reco.url &&\n  //  reco.price;\n  return reco.name &&\n    reco.price;\n}\n\nfunction fetchRecos(targetId) {\n  if (editorMode && extension.example_json.trim()) {\n    console.log('Using example reco');\n\n    var recos = [];\n    for (var i = 0; i < 20; i++) {\n      recos.push(JSON.parse(extension.example_json.trim()));\n    }\n    return recos;\n  } else {\n    var fetcher = recommender.getRecommendationsFetcher(recommenderKey, targetId, {\n      preFilter: preFilter,\n      canonicalize: canonicalize,\n      postFilter: postFilter\n    });\n    return fetcher.next(extension.max);\n  }\n}\n\nfunction renderRecos(recos) {\n  recos = recos.slice(0, extension.max);\n  if (recos.length === 0) {\n    // using example reco if there are no recos yet\n    console.log('Using example reco from render function');\n    recos.push(JSON.parse(extension.example_json.trim()));\n    //console.log(\"recos is: \" + recos);\n    //console.log(recos[0]);\n    recos = recos[0];\n    console.log(recos);\n  }\n\t\n  var html = extension.$render({\n    extension: extension,\n    recos: recos,\n  });\n  \n  console.log(\"the html is: \" + html);\n\n  utils.waitForElement(extension.selector).then(function(selectorElem) {\n    // Inject the extension html onto the page.\n    switch (extension.placement) {\n      case 'before':\n        selectorElem.insertAdjacentHTML('beforebegin', html);\n        break;\n      case 'after':\n        selectorElem.insertAdjacentHTML('afterend', html);\n        break;\n      case 'prepend':\n        selectorElem.insertBefore(html, selectorElem.firstChild);\n        break;\n      case 'append':\n        selectorElem.appendChild(html);\n        break;\n      case 'replace-content':\n        // This is to save the original content in a hidden div so that we can restore it in undo.js.\n        var origHtml = selectorElem.innerHTML();\n\n        selectorElem.innerHTML= '';\n        selectorElem.appendChild(html).appendChild(\n          '<div>'\n            .setAttribute('id', 'optimizely-extension-' + extension.$instance + '-orig')\n            .appendChild(origHtml)\n            .style.display = 'none'\n        );\n        break;\n      default:\n        throw new Error('Unknown placement ' + extension.placement);\n    }\n  }).then(function() {\n    // This selector should select the anchor element around each reco.\n    var recosSelector = '#optimizely-extension-' + extension.$instance + ' a.reco-link';\n\n    document.querySelectorAll(recosSelector).click(function () {\n      optimizely.push({\n        type: 'event',\n        // Replace with the actual reco click event you've created for this project, if different.\n        eventName: 'extension_recommended_item_click',\n        tags: {\n          // Tag the id of the clicked reco. The selector may differ depending on your HTML setup.\n          // clicked_id: $(this).find('meta[itemprop=\"id\"]').attr('content')\n          // double check if this is actually the right way to do this without jQuery\n          clicked_id: this.querySelectorAll('meta[itemprop=\"id\"]').getAttribute('content')\n        }\n      });\n    });\n  });\n}\n\nif (recommender) {\n  //replaced $(document).ready\n  document.addEventListener(\"DOMContentLoaded\",function() {\n    var targetId = getTargetId();\n    fetchRecos(targetId)\n    .then(renderRecos);\n  });\n}\n",
+    "undo_js": "switch (extension.placement) {\n  case 'before':\n  case 'after':\n  case 'prepend':\n  case 'append':\n    var extensionHtml = document.getElementById('optimizely-extension-' + extension.$instance);\n    if (extensionHtml) {\n      extensionHtml.parentElement.removeChild(extensionHtml)\n    };\n    break;\n  case 'replace-content':\n    var origHtml = '#optimizely-extension-' + extension.$instance + '-orig'.innerHTML;\n    (extension.selector).innerHTML = origHtml;\n    break;\n  default:\n    throw new Error('Unknown placement ' + extension.placement);\n}\n"
+  }
+}

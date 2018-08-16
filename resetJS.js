@@ -5,8 +5,8 @@ switch (extension.placement) {
   case 'append':
     var extensionHtml = document.getElementById('optimizely-extension-' + extension.$instance);
     if (extensionHtml) {
-      extensionHtml.parentElement.removeChild(extensionHtml)
-    };
+      extensionHtml.parentElement.removeChild(extensionHtml);
+    }
     break;
   case 'replace-content':
     var origHtml = '#optimizely-extension-' + extension.$instance + '-orig'.innerHTML;

@@ -1,13 +1,16 @@
 // Throughout this script there will be places marked as [MUST CHANGE]. Make sure you fill in the details accordingly.
 // Other places have comments to inform you what kind of customizations you can potentially make there. Make sure you
 // read through them.
-console.log("version 2.22");
+console.log("version 2.27");
 // jQuery is not required anymore for this extension
 var utils = optimizely.get('utils');
 var recommender = optimizely.get('recommender');
 
 // This boolean tells whether you are in the editor, so that you can special case if needed.
-var editorMode = optimizely.state && optimizely.state.directives && optimizely.state.directives.isEditor;
+var editorMode = !!window.optimizely_p13n_inner ||
+    window.location != window.parent.location &&
+    window.location.search.indexOf('optimizely_editor') > -1;
+console.log('editormode doenst crash');
 
 // [MUST CHANGE]
 // Fill in the real ids of the different recommenders you will use
@@ -94,19 +97,24 @@ function postFilter(reco) {
 
 function fetchRecos(targetId) {
   if (editorMode && extension.example_json.trim()) {
-    console.log('Using example reco');
+    console.log('Using example reco, because it is editormode');
 
     var recos = [];
-    for (var i = 0; i < 20; i++) {
+    //for (var i = 0; i < 20; i++) {
       recos.push(JSON.parse(extension.example_json.trim()));
-    }
+    //}
+    recos = recos[0];
+    console.log(recos);
     return recos;
   } else {
+    console.log('else part of fetcher function 1');
     var fetcher = recommender.getRecommendationsFetcher(recommenderKey, targetId, {
       preFilter: preFilter,
       canonicalize: canonicalize,
       postFilter: postFilter
     });
+    console.log('else part of fetcher function 2');
+    console.log(fetcher);
     return fetcher.next(extension.max);
   }
 }
@@ -180,11 +188,19 @@ function renderRecos(recos) {
   });
 }
 
-if (recommender) {
-  //replaced $(document).ready
-  document.addEventListener("DOMContentLoaded",function() {
+if (recommender){
+  console.log('if recommender is true');
+  // this is the replacement for the old jQuery document.ready,
+  // if you use DOMContentLoaded it doesn't work in the 	editor
+  // [MUST CHANGE] Wait for the correct element (now extension.selector),
+  // so you are 100% sure the getTargetId function will be able to get the targetId
+	utils.waitForElement(extension.selector).then(function() {
+    console.log('new function for wait works');
     var targetId = getTargetId();
-    fetchRecos(targetId)
-    .then(renderRecos);
-  });
+    console.log(targetId);
+    var fetched = fetchRecos(targetId);
+    console.log('feteched recos');
+    console.log(fetched);
+    renderRecos(fetched);
+});
 }

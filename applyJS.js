@@ -1,7 +1,7 @@
 // Throughout this script there will be places marked as [MUST CHANGE]. Make sure you fill in the details accordingly.
 // Other places have comments to inform you what kind of customizations you can potentially make there. Make sure you
 // read through them.
-console.log("version 2.27");
+
 // jQuery is not required anymore for this extension
 var utils = optimizely.get('utils');
 var recommender = optimizely.get('recommender');
@@ -9,8 +9,12 @@ var recommender = optimizely.get('recommender');
 // This boolean tells whether you are in the editor, so that you can special case if needed.
 var editorMode = !!window.optimizely_p13n_inner ||
     window.location != window.parent.location &&
-    window.location.search.indexOf('optimizely_editor') > -1;
-console.log('editormode doenst crash');
+    window.location.search.indexOf('optimizely_editor') > -1,
+    logEnabled = editorMode || window.localStorage.getItem('logRecs');
+
+var log = function() {
+  if(logEnabled) console.log.apply(console, arguments);
+}
 
 // [MUST CHANGE]
 // Fill in the real ids of the different recommenders you will use
@@ -62,9 +66,8 @@ function preFilter(reco) {
   return true;
 }
 
-function canonicalize(reco) {
-  // Uncomment the next line to log the reco to console to help you debug. Remember to comment it out afterwards.
-  // console.log(reco);
+function canonicalize(reco) {  
+  log('canonicalize', reco);
 
   // This is where you perform any necessary canonicalization of the recos before rendering them.
   // In the example below, we convert numeric prices into string form, and treat missing in_stock values as true.
@@ -97,24 +100,24 @@ function postFilter(reco) {
 
 function fetchRecos(targetId) {
   if (editorMode && extension.example_json.trim()) {
-    console.log('Using example reco, because it is editormode');
+    log('Using example reco, because it is editormode');
 
     var recos = [];
     //for (var i = 0; i < 20; i++) {
       recos.push(JSON.parse(extension.example_json.trim()));
     //}
     recos = recos[0];
-    console.log(recos);
+    log(recos);
     return recos;
   } else {
-    console.log('else part of fetcher function 1');
+    log('else part of fetcher function 1');
     var fetcher = recommender.getRecommendationsFetcher(recommenderKey, targetId, {
       preFilter: preFilter,
       canonicalize: canonicalize,
       postFilter: postFilter
     });
-    console.log('else part of fetcher function 2');
-    console.log(fetcher);
+    log('else part of fetcher function 2');
+    log(fetcher);
     return fetcher.next(extension.max);
   }
 }
@@ -123,12 +126,12 @@ function renderRecos(recos) {
   recos = recos.slice(0, extension.max);
   if (recos.length === 0) {
     // using example reco if there are no recos yet
-    console.log('Using example reco from render function');
+    log('Using example reco from render function');
     recos.push(JSON.parse(extension.example_json.trim()));
-    //console.log("recos is: " + recos);
-    //console.log(recos[0]);
+    //log("recos is: " + recos);
+    //log(recos[0]);
     recos = recos[0];
-    console.log(recos);
+    log(recos);
   }
 
   var html = extension.$render({
@@ -136,7 +139,7 @@ function renderRecos(recos) {
     recos: recos,
   });
 
-  console.log("the html is: " + html);
+  log("the html is: " + html);
 
   utils.waitForElement(extension.selector).then(function(selectorElem) {
     // Inject the extension html onto the page.
@@ -189,18 +192,18 @@ function renderRecos(recos) {
 }
 
 if (recommender){
-  console.log('if recommender is true');
+  log('if recommender is true');
   // this is the replacement for the old jQuery document.ready,
   // if you use DOMContentLoaded it doesn't work in the 	editor
   // [MUST CHANGE] Wait for the correct element (now extension.selector),
   // so you are 100% sure the getTargetId function will be able to get the targetId
 	utils.waitForElement(extension.selector).then(function() {
-    console.log('new function for wait works');
+    log('new function for wait works');
     var targetId = getTargetId();
-    console.log(targetId);
+    log(targetId);
     var fetched = fetchRecos(targetId);
-    console.log('feteched recos');
-    console.log(fetched);
+    log('feteched recos');
+    log(fetched);
     renderRecos(fetched);
 });
 }

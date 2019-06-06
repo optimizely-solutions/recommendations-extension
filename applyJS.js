@@ -14,7 +14,7 @@ var editorMode = !!window.optimizely_p13n_inner ||
 
 var log = function() {
   if(logEnabled) console.log.apply(console, arguments);
-}
+};
 
 // [MUST CHANGE]
 // Fill in the real ids of the different recommenders you will use
@@ -66,7 +66,7 @@ function preFilter(reco) {
   return true;
 }
 
-function canonicalize(reco) {  
+function canonicalize(reco) {
   log('canonicalize', reco);
 
   // This is where you perform any necessary canonicalization of the recos before rendering them.
@@ -191,19 +191,15 @@ function renderRecos(recos) {
   });
 }
 
-if (recommender){
+if (recommender) {
   log('if recommender is true');
   // this is the replacement for the old jQuery document.ready,
-  // if you use DOMContentLoaded it doesn't work in the 	editor
+  // if you use DOMContentLoaded it doesn't work in the     editor
   // [MUST CHANGE] Wait for the correct element (now extension.selector),
   // so you are 100% sure the getTargetId function will be able to get the targetId
-	utils.waitForElement(extension.selector).then(function() {
-    log('new function for wait works');
-    var targetId = getTargetId();
-    log(targetId);
-    var fetched = fetchRecos(targetId);
-    log('feteched recos');
-    log(fetched);
-    renderRecos(fetched);
-});
+  utils.waitForElement(extension.selector).then(function() {
+      utils.Promise.resolve(getTargetId())
+          .then(fetchRecos)
+          .then(renderRecos);
+  });
 }
